@@ -1,0 +1,59 @@
+---
+title: "CO2 layer analysis"
+author: "jishnu"
+date: "2024-11-12"
+output: html_document
+format:
+  html: default
+  github: default
+  pptx: default
+  docx: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("kableExtra")
+library(kableExtra)
+
+# Read the data
+data <- "ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_annmean_mlo.txt"
+CO2_data <- read.table(data, skip = 57, col.names = c("year", "mean", "unc"))
+
+# Time series plot of CO2 concentrations
+ggplot(data = CO2_data, aes(x = year, y = mean)) +
+  geom_line(color = "red", linewidth = 1) +  # Updated from `size` to `linewidth`
+  xlab("Year") +
+  ylab(expression(paste("Mean Annual CO"[2], " Concentration (ppm)", sep = ""))) +
+  ggtitle(expression(paste("Increase in Atmospheric CO"[2], " Over Time"))) +
+  labs(
+    title = "Annual Mean Carbon Dioxide Concentrations (1959-Present)",
+    x = "Year",
+    y = "Mean CO2 (ppm)"
+  ) +
+  theme_minimal()
+
+```
+
+![]()
+
+```{r}
+# Create a summary table of mean CO2 levels for every 5 years
+summary_table <- CO2_data %>%
+  filter(year %% 5 == 0) %>%
+  select(year, mean) %>%
+  rename(`Year` = year, `Mean CO2 (ppm)` = mean)
+
+# Display the table using kable
+summary_table %>%
+  kable(caption = "Summary Table: Mean CO2 Levels Every 5 Years") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+```{r}
+
+```
