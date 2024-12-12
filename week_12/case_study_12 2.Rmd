@@ -1,0 +1,85 @@
+---
+title: "case_study_12"
+author: "jishnu"
+date: "2024-12-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Install necessary packages if not already installed
+# install.packages("tidyverse")
+# install.packages("dygraphs")
+# install.packages("xts")
+# install.packages("htmlwidgets")
+# install.packages("widgetframe")
+install.packages("openmeteo")
+
+# Load required libraries
+library(tidyverse)
+library(dygraphs)
+library(xts)
+library(htmlwidgets)
+library(widgetframe)
+library(openmeteo)
+```
+
+```{r}
+# Fetch weather data for Buffalo, NY
+d <- weather_history(
+  c(43.00923265935055, -78.78494250958327),
+  start = "2023-01-01",
+  end = Sys.Date(),
+  daily = list("temperature_2m_max", "temperature_2m_min", "precipitation_sum")
+) %>%
+  mutate(
+    daily_temperature_2m_mean = (daily_temperature_2m_max + daily_temperature_2m_min) / 2
+  )
+
+# Check the data structure
+head(d)
+colnames(d)
+
+# Convert data to xts format for temperature plot
+temp_xts <- xts(
+  d %>%
+    select(daily_temperature_2m_max, daily_temperature_2m_min, daily_temperature_2m_mean),
+  order.by = as.Date(d$date)
+)
+
+# Convert data to xts format for precipitation plot
+precip_xts <- xts(
+  d %>%
+    select(daily_precipitation_sum),
+  order.by = as.Date(d$date)
+)
+
+# Create the temperature dygraph
+temp_dygraph <- dygraph(temp_xts, main = "Daily Maximum Temperature in Buffalo, NY") %>%
+  dySeries("daily_temperature_2m_max", label = "Max Temp (°C)", color = "#006d77") %>%
+  dySeries("daily_temperature_2m_min", label = "Min Temp (°C)", color = "#83c5be") %>%
+  dySeries("daily_temperature_2m_mean", label = "Mean Temp (°C)", color = "#edf6f9") %>%
+  dyAxis("y", label = "Temperature (°C)") %>%
+  dyRangeSelector(dateWindow = c("2023-01-01", "2024-10-31"))
+
+# Render the temperature dygraph in RStudio Viewer
+temp_dygraph
+
+# Create the precipitation dygraph
+precip_dygraph <- dygraph(precip_xts, main = "Daily Precipitation in Buffalo, NY") %>%
+  dySeries("daily_precipitation_sum", label = "Precipitation (mm)", color = "#457b9d") %>%
+  dyAxis("y", label = "Precipitation (mm)") %>%
+  dyRangeSelector(dateWindow = c("2023-01-01", "2024-10-31"))
+
+# Render the precipitation dygraph in RStudio Viewer
+precip_dygraph
+
+# Save both graphs to interactive HTML files
+saveWidget(temp_dygraph, "Temperature_Dygraph.html", selfcontained = TRUE)
+saveWidget(precip_dygraph, "Precipitation_Dygraph.html", selfcontained = TRUE)
+
+
+```
